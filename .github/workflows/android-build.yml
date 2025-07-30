@@ -1,0 +1,43 @@
+name: Build Aeronics APK
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set up Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '5.15.2'
+        target: android
+        arch: android_armv7
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y android-sdk android-ndk git build-essential
+
+    - name: Build APK
+      run: |
+        ./tools/setup/prereqs.sh
+        ./tools/setup/install-android-build-tools.sh
+        ./tools/android/build_apk.sh
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: Aeronics-debug.apk
+        path: deploy/android-build/*.apk
